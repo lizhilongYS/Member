@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.ResourcesMapper">
+	<insert id="add" parameterType="entity.Resources">
+		insert into
+		resource(resourceName,url,title,category)
+		values
+		(#{resourceName},#{url},#{title},#{category})
+	</insert>
+	<select id="selectCategory" parameterType="entity.Resources"
+		resultType="entity.Resources">
+		select * from resource where category=#{category}
+	</select>
+	<select id="selectCachapter" parameterType="entity.Resources"
+		resultType="entity.Resources">
+		select * from resource where title=#{title} and category=#{category}
+	</select>
+	<select id="updateResource" parameterType="int" resultType="entity.Resources">
+		select * from resource where id=#{id}
+	</select>
+	<select id="selectBoth" resultType="entity.Resources">
+		select * from resource
+	</select>
+	<update id="update" parameterType="entity.Resources">
+		update resource set
+		resourceName=#{resourceName},title=#{title},category=#{category},
+		url=#{url} where id=#{id}
+	</update>
+	<delete id="delete" parameterType="entity.Resources">
+		delete from resource where id=#{id}
+	</delete>
+
+
+</mapper>

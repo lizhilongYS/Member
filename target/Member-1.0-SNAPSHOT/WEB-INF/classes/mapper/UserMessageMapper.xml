@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.UserMessageMapper">
+	<!-- 新增：用户留言信息读取 -->
+	<select id="getUserMessages" parameterType="Map" resultType="entity.UserMessage">
+		select id, usertype,loginnumber,name,ifnull(sex,'男')as sex
+		,message,date_format(created,'%Y-%c-%d %H:%i:%s')as created , pid
+		from v_usermessage_sum where id &lt; #{startid} order by id desc limit
+		0,#{getLimitCount}
+	</select>
+	<!-- 读取指定数目的最新用户留言信息 -->
+	<select id="getNewUserMessages" parameterType="int"
+		resultType="entity.UserMessage">
+		select id, usertype,loginnumber,name,ifnull(sex,'男')as sex
+		,message,date_format(created,'%Y-%c-%d %H:%i:%s')as created , pid
+		from v_usermessage_sum order by id desc limit 0,#{getLimitCount}
+	</select>
+	<!-- 获取最大id值 -->
+	<select id="getMaxId" resultType="int">
+		select max(id) from usermessage
+	</select>
+	<!--插入用户留言信息 -->
+	<insert id="saveUserMessage" parameterType="entity.UserMessage">
+		insert into usermessage (usertype,loginnumber,message,created) values
+		(#{usertype},#{loginnumber},#{message},#{created})
+	</insert>
+</mapper>

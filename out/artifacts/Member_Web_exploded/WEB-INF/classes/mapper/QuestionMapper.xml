@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.QuestionMapper">
+	<!-- 提取问题分享信息(会员&体验者) -->
+	<select id="getQuestions" parameterType="dto.QuestionDTO"
+		resultType="entity.Question">
+		select
+		* from questions where cId=#{cId}
+		<if test="checkType=='mine'">
+			and qpId=#{qpId}
+		</if>
+	</select>
+	<!-- 提取问题分享信息(管理员) -->
+	<select id="getQuestionsForAdmin" parameterType="dto.QuestionDTO"
+		resultType="entity.checkQuestion">
+		select
+		* from v_checkquestion
+		<if test="checkType=='allno'">
+			where state="0";
+		</if>
+		<if test="checkType=='allnopass'">
+			where state="2" or state="3";
+		</if>
+		<if test="checkType=='tomodify'">
+			where state="2" and spId=#{spId};
+		</if>
+		<if test="checkType=='modified'">
+			where state="3" and spId=#{spId};
+		</if>
+	</select>
+	<!-- 添加问题分享 -->
+	<insert id="addQuestion" parameterType="entity.Question">
+		insert into
+		questions(cId,question,qpId,qperson,solution,spId,time,checktime,state)
+		value(#{cId},#{question},#{qpId},#{qperson},#{solution},#{spId},#{time},#{checktime},#{state});
+	</insert>
+	<!-- 修改问题分享 -->
+	<update id="modifyQuestion" parameterType="entity.Question">
+		update questions set
+		question=#{question},solution=#{solution},state=#{state} where
+		id=#{id};
+	</update>
+	<select id="getState" parameterType="entity.Question"
+		resultType="string">
+		select state from questions where Id=#{Id}
+	</select>
+	<!-- 管理员审核问题 -->
+	<update id="checkQuestion" parameterType="entity.Question">
+		update questions set
+		state=#{state},checktime=#{checktime},spId=#{spId} where id=#{id};
+	</update>
+	<!-- 管理员删除问题 -->
+	<delete id="delQuestion" parameterType="entity.Question">
+		delete from questions
+		where id=#{id}
+	</delete>
+</mapper>
