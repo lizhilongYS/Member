@@ -60,7 +60,8 @@
 
 	</properties>
 	<dependencies>
-		<!-- java ee -->
+
+
 		<dependency>
 			<groupId>javax</groupId>
 			<artifactId>javaee-api</artifactId>

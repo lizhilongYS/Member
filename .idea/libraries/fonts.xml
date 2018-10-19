@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="fonts">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/src/main/webapp/WEB-INF/lib/fonts.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/main/webapp/WEB-INF/lib/Fonts.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

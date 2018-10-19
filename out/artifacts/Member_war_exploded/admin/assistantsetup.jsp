@@ -1,0 +1,223 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="hello" prefix="h"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=UTF-8>
+<title>基础设置-Java互助学习VIP群业务运行系统</title>
+<link
+	href="${pageContext.request.contextPath}/css/style.css?time=20161215"
+	rel="stylesheet" type="text/css" />
+<link
+	href="${pageContext.request.contextPath}/tableTemplet/lib/Hui-iconfont/1.0.1/iconfont.css"
+	rel="stylesheet" type="text/css" />
+<link rel="shortcut icon"
+	href="${pageContext.request.contextPath}/resources/images/Icon.ico" />
+<link
+	href="${pageContext.request.contextPath}/resources/H-ui_v3.0/css/H-ui.min.css"
+	rel="stylesheet" type="text/css" />
+<link href="${pageContext.request.contextPath}/resources/css/page.css"
+	rel="stylesheet" type="text/css" />
+<script type="text/javascript"
+	src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script type="text/javascript"
+	src="${pageContext.request.contextPath}/resources/layer-v2.4/layer.js"></script>
+
+<script type="text/javascript">
+	$(function() {
+	
+		//第一次进来默认设置
+		getData("艾渊");
+		//加载密码重置
+		mycellclick();
+		//控制隐藏和显示div
+		var current=document.getElementById("menu1"); 
+	   	if($("#member").val()=="")  
+	     {  
+	       current.style.display="none";  
+	     }
+	   	var name=null;
+		//设置选中会员的id
+		$("#tabsC").on('click','.setMember',function(){
+			$("#tabsC li a span").css("color","#212122")
+			$(this).children("span").css("color","red");
+			//current.style.display="block";  
+			var reStripTags = /<\/?.*?>/g;
+			var textOnly = this.innerHTML.replace(reStripTags, ''); //只有文字的结果
+			name=textOnly;
+			$("#tabsC2").html("");
+			getData(name);
+		})
+		$.ajaxSetup ({
+
+	    cache: false //关闭AJAX相应的缓存
+
+		});
+		//第一次点击进来的默认值
+		function getData(name) {
+			$.ajaxSetup({
+				async : false
+			});
+			$.post("${pageContext.request.contextPath}/member/getMemInfoByName.action",{mname:name}, function(data) {
+				var dataObj = eval("(" + data + ")");
+				drawTable(dataObj);
+				clickRows();
+				summarytdclick();
+				setupclick();
+				mycellclick();
+			})
+		}
+		function drawTable(data) {
+			var line = "";
+				line += "<tr class='rows'>";
+				line += "<td>" + data.name + "</td>";
+				line += "<td>" + data.member.name + "</td>";
+				line += "<td class='td-status' lang='"+ data.member.id + "," + data.member.name + "'>";
+				if (data.member.summaryflag == '1') {
+					line += "<span class='label label-danger radius'>需要</span>";
+				} else {
+					line += "<span class='label label-success radius'>不需要</span>";
+				}
+				line += "</td>";
+				if (data.admin != null) {
+					line += "<td>" + data.admin.realname + "</td>";
+				} else {
+					line += "<td>" + "" + "</td>";
+				}
+				line += "<td>";
+				line += "<a href='javascript:void(0)' lang='"
+						+ data.member.id + "," + data.member.name
+						+ "' class='setup' >设置</a>";
+				line += "</td>";
+				line=line + "<td>" + "<a href='javascript:void(0)' lang='"
+						+ data.id + "' class='mycell' >重置</a>" + "</td>";
+				line += "</tr>";
+			
+			$("#tbody").html(line);
+		}
+		//周报标记td点击事件
+		function summarytdclick() {
+			$(".td-status").click(function() {
+				var data = this.lang.split(",");
+				var id = data[0];
+				var name = data[1];
+				var msg = ""
+				//alert($(this).children("span").text());
+				if ($(this).children("span").text() == "需要") {
+					msg = "你确定要设置\"不需要\"提交周报？";
+				} else {
+					msg = "你确定要设置\"需要\"提交周报？";
+				}
+				layer.confirm(msg,{btn : [ '确定', '取消' ]},function(index, layero) {
+					$.post("${pageContext.request.contextPath}/member/toggleSummryflag.action",{id : id},function() {
+						getData(name);
+						layer.closeAll();
+					})
+				});
+			})
+		}
+		function setupclick() {
+			$(".setup").click(function() {
+				var data = this.lang.split(",");
+				var id = data[0];
+				var name = data[1];
+				layer.open({
+						type : 2,
+						title : '设置小助手',
+						area : [ '600px', '361px' ],
+						// closeBtn: 0, //不显示关闭按钮
+						shift : 1,
+						shade : 0.5, //开启遮罩关闭
+						content : '${pageContext.request.contextPath}/admin/assistantselect.jsp?id='
+								+ id + '&name=' + name,
+						end : function() {
+							getData(name);
+						}
+					});
+
+				});
+		}
+		
+		//密码重置
+		function mycellclick(){
+			$.ajaxSetup({
+				async : false
+			});
+			$(".mycell").click(function(data){
+				var authority;
+				var lang=this.lang;
+				$.post("${pageContext.request.contextPath}/admin/checkAdminAuthorith.action",function(data){
+					if(data == 1)
+					{
+						authority=data;
+					}
+				});	
+				if(authority==1)
+				{
+					/*重置密码，弹出对话框，确认是否要重置密码*/
+					layer.confirm(
+							'您确定要重置该用户密码吗?重置密码将删除该用户的原始密码，请谨慎操作！',
+							{
+								btn : [ '是', '否' ]
+							},//按钮一的回调函数
+							function() {
+								 $.post("${pageContext.request.contextPath}/user/getPwd.action",{id:lang},function(data){
+									$(".mycell").html("");
+									$(".mycell").parent().text(data); 
+								});
+								layer.closeAll('dialog');
+							});
+				}
+				else
+				{
+					alert("您不具备该权限，请联系管理员!");
+				}
+
+			});
+		}	
+	});
+</script>
+<script type="text/javascript"
+	src="${pageContext.request.contextPath}/resources/jslib/currency.js"></script>
+</head>
+<body>
+	<div id="tag" style="padding-right: 50px;">
+		<h:showNum className2="setMember" className1="num"
+			url="${pageContext.request.contextPath}/member/getAllNames.action" />
+	</div>
+	<div id="msg"></div>
+	<div id="tabsC" style="margin-bottom: 20px;"></div>
+
+
+	<c:if test="${ADMIN==null}">
+		<jsp:forward page="/user/login.jsp"></jsp:forward>
+	</c:if>
+	<h1 class="text-c">VIP会员基础设置</h1>
+	<div class="mt-20">
+		<table id="users"
+			class="table table-border table-bg table-bordered radius">
+		</table>
+	</div>
+	<div class="panel panel-secondary">
+		<!-- <div class="panel-header"></div> -->
+		<div class="panel-primary">
+			<table class="table table-border table-bg table-bordered radius">
+				<thead class='text-c'>
+					<tr>
+						<th>会员编号</th>
+						<th>会员姓名</th>
+						<th>是否需要写周报</th>
+						<th>小助手姓名</th>
+						<th>操作</th>
+						<th>密码重置</th>
+					</tr>
+				</thead>
+				<tbody id="tbody" class='text-c'></tbody>
+			</table>
+		</div>
+	</div>
+	<div class='page-nav' style="float: right; margin-top: 10px;"></div>
+</body>
+</html>

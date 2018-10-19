@@ -7,8 +7,10 @@
 <link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/display_picture_style.css"
 	type="text/css" />
+<%--<script type="text/javascript"--%>
+	<%--src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>--%>
 <script type="text/javascript"
-	src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+	src="${pageContext.request.contextPath}/jslib/jquery-1.11.1.js"></script>
 <script type="text/javascript"
 	src="${pageContext.request.contextPath}/jslib/cropbox.js"></script>
 <script type="text/javascript"

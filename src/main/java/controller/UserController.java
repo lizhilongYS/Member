@@ -822,6 +822,7 @@ public class UserController {
 		
 		inputHTMLFileName = request.getServletContext().getRealPath("") + "contract" + File.separator
 					+ "html" + File.separator + "contractOfEverybody.html";
+		System.out.println(inputHTMLFileName);
 		UserInfo userInfo = new UserInfo();
 		userInfo.setUid(user.getId());
 		userInfo = userInfoDAO.get(userInfo).get(0);
@@ -830,16 +831,23 @@ public class UserController {
 		fileName = String.valueOf((int) (1000000000 + Math.random() * 999999999));
 		htmlPath = request.getServletContext().getRealPath("") + "contract" + File.separator + "temp"
 				+ File.separator + fileName + ".html";
+
 		pdfPath = request.getServletContext().getRealPath("") + "contract" + File.separator + "temp"
 				+ File.separator + fileName + ".pdf";
+
 		// 获得修改后的路径htmlpath
-		String lasthtmlPath = generatePDF.replaceKeyWords(user, inputHTMLFileName, htmlPath, pdfPath, userInfo);
-		
+//		String lasthtmlPath = generatePDF.replaceKeyWords(user, inputHTMLFileName, htmlPath, pdfPath, userInfo);
+		File lasthtmlPath = generatePDF.replaceKeyWords(user, inputHTMLFileName, htmlPath, pdfPath, userInfo);
+		System.out.println(" ---------------"+lasthtmlPath);
 		GeneratePDF converter = new GeneratePDF();
 		// 用于把html文件转化为Pdf文件
-		converter.generatePDF(lasthtmlPath, new File(pdfPath));
+		String baseUrl = request.getServletContext().getRealPath("");
+		//converter.generatePDF(lasthtmlPath, new File(pdfPath),baseUrl);
+		System.out.println(baseUrl);
+		converter.genertePDF(lasthtmlPath,pdfPath,baseUrl);
 		contextpath = request.getContextPath() + "/contract" + "/temp/" + fileName + ".pdf";
 		// 返回contextppath的地址，用于在线预览pdf
+
 		return String.valueOf(contextpath);
 	}
 

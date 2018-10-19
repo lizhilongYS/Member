@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="pd4ml_demo">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/src/main/webapp/WEB-INF/lib/pd4ml_demo.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

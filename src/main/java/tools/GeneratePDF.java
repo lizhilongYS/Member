@@ -1,24 +1,26 @@
 package tools;
 
 import java.awt.Insets;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.MalformedURLException;
+
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import javax.annotation.Resource;
+
+import com.fasterxml.jackson.databind.ser.Serializers;
+import com.itextpdf.text.pdf.BaseFont;
 import org.springframework.stereotype.Component;
-import org.zefer.pd4ml.PD4Constants;
-import org.zefer.pd4ml.PD4ML;
+
 
 import dao.PeriodDAO;
 import entity.User;
 import entity.UserInfo;
+import org.xhtmlrenderer.pdf.ITextFontResolver;
+import org.xhtmlrenderer.pdf.ITextRenderer;
+import org.zefer.pd4ml.PD4Constants;
+import org.zefer.pd4ml.PD4ML;
+
 
 /**
  * 作者：农大辉，时间：2015.12.5 html生成pdf的工具了类，
@@ -37,6 +39,7 @@ public class GeneratePDF {
 	protected int rightValue = 10;
 	protected int bottomValue = 10;
 
+
 	// 测试
 	// public static void main(String[] args) throws Exception {
 	// GeneratePDF converter = new GeneratePDF();
@@ -51,33 +54,101 @@ public class GeneratePDF {
 	// converter.generatePDF_2(htmlpath,new File("C:/demd1.pdf"));
 	// }
 	// 这是把html转换为Pdf的方法，File outputPDFFile为输出pdf的地址，String htmlPath为HTML的地址
-	public void generatePDF(String htmlPath, File outputPDFFile) throws Exception {
-		FileOutputStream fos = new FileOutputStream(outputPDFFile);
-		PD4ML pd4ml = new PD4ML();
-		// pd4ml.setPageInsets(new Insets(20, 10, 10, 10));
-		pd4ml.setPageInsetsMM(new Insets(topValue, leftValue, bottomValue, rightValue));
-		pd4ml.setHtmlWidth(1300);
-		//pd4ml.setPageSize(pd4ml.changePageOrientation(PD4Constants.A4));
-		pd4ml.setPageSize(PD4Constants.A4);
-		pd4ml.useTTF("java:fonts", true);
-		pd4ml.setDefaultTTFs("SongTi_GB2312", "SongTi_GB2312", "SongTi_GB2312");
-		pd4ml.enableDebugInfo();
-		pd4ml.render("file:" + htmlPath, fos);
+//	public void generatePDF(String htmlPath, File outputPDFFile, String baseUrl) throws Exception {
+//		FileOutputStream fos = new FileOutputStream(outputPDFFile);
+//		PD4ML pd4ml = new PD4ML();
+//		pd4ml.setHtmlWidth(1400); // set frame width of "virtual web browser"
+//		pd4ml.setPageSize(pd4ml.changePageOrientation(PD4Constants.A4));
+//		pd4ml.setPageInsetsMM(new Insets(topValue, leftValue, bottomValue, rightValue));
+//		pd4ml.addStyle("BODY {margin: 0}", true);
+//		pd4ml.useTTF("java:fonts", true);
+//		// pd4ml.useTTF("c:/windows/fonts", true);
+//		pd4ml.setDefaultTTFs("KaiTi", "KaiTi", "KaiTi");
+//
+//		pd4ml.enableDebugInfo();
+//		pd4ml.render(new URL(htmlPath), fos); // actual document conversion from URL to file
+//		fos.close();
+////		pd4ml.render("file:" + htmlPath, fos);
+////		File htmlFile = new File(htmlPath);
+////		String readerStr = readFile(htmlFile, "utf-8");
+////		pd4ml.render(new StringReader(readerStr), fos);
+//	}
+
+	/**
+	 * 使用java基于ITextRenderer的类实现html转换pdf
+	 *
+	 */
+	public void genertePDF(File htmlPath, String PdfPath, String baseUrl) throws Exception {
+		String url="";
+		try {
+			 url =htmlPath.toURI().toURL().toString();
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+		System.out.println(url);
+		OutputStream os = new FileOutputStream(PdfPath);
+		ITextRenderer renderer = new ITextRenderer();
+		renderer.setDocument(url);
+		//解决中文乱码
+		ITextFontResolver fontResolver = renderer.getFontResolver();
+		fontResolver.addFont("fonts/simsun.ttc",
+				BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+		renderer.layout();
+		renderer.createPDF(os);
+		os.flush();
+		os.close();
+
+
+
 	}
 
+	/**
+	 * 读取文件
+	 * @param path 路径
+	 * @param encoding 编码
+	 * @return 字符串
+	 * @throws IOException 如果遇到io异常
+	 */
+	private String readFile(File path, String encoding)
+			throws IOException
+	{
+		// File f = new File( path );
+		FileInputStream is = new FileInputStream(path);
+		BufferedInputStream bis = new BufferedInputStream(is);
+		ByteArrayOutputStream fos = new ByteArrayOutputStream();
+		byte buffer[] = new byte[2048];
+		int read;
+		do
+		{
+			read = is.read(buffer, 0, buffer.length);
+			if (read > 0)
+			{
+				fos.write(buffer, 0, read);
+			}
+		} while (read > -1);
+
+		fos.close();
+		bis.close();
+		is.close();
+
+		return fos.toString(encoding);
+	}
+
+
+
 	// 读取html的内容，然后替换关键字,htmlPath是替换内容后的文件路径
-	public String replaceKeyWords(User user, String inputHTMLFileName, String htmlPath, String pdfPath,
+	public File replaceKeyWords(User user, String inputHTMLFileName, String htmlPath, String pdfPath,
 			UserInfo userInfo) throws IOException {
 		String data = "";
 		// 替换关键字
 		data = GeneratePDF.getFileData(inputHTMLFileName);// 返回读取的数据的内容
-		data = data.replace("contractNo", "<font face=\"KaiTi_GB2312\">" + user.getName() + "</font>");
+		data = data.replace("contractNo", "<font face=\"\">" + user.getName() + "</font>");
 		data = data.replace("member.userinfo.idNo", userInfo.getIdNo());
 		data = data.replace("member.userinfo.qqNo", userInfo.getQqNo());
 		data = data.replace("member.Name", user.getMember().getName());
 		data = data.replace("member.graduateDate",
 				(new SimpleDateFormat("yyyy年MM月dd日").format(user.getMember().getGraduateDate())).toString());
-		data = data.replace("member.school", "<font face=\"KaiTi_GB2312\">" + user.getMember().getSchool() + "</font>");
+		data = data.replace("member.school", "<font face=\"\">" + user.getMember().getSchool() + "</font>");
 		data = data.replace("member.phone", user.getMember().getMobile());
 		data = data.replace("member.userinfo.payAccount", userInfo.getPayAccount());
 		data = data.replace("member.userinfo.contactName", userInfo.getContactName());
@@ -134,11 +205,13 @@ public class GeneratePDF {
 		// 往文件中写入字符串
 		//向文件中传入内容的时候，找不到目录，文件的目录找不到。
 		OutputStream os = new FileOutputStream(file);
-		os.write(data.getBytes());
+		os.write(data.getBytes("UTF-8"));
 		// 把html输出到输出流中
 		this.closeStream(os);
 		// 返回替换后的内容的文件的路径
-		return htmlPath;
+	//	return htmlPath;
+
+		return file;
 	}
 
 	/**
@@ -164,7 +237,7 @@ public class GeneratePDF {
 			// InputStream读取文件流，对文件进行读取,就是字节流的输入
 			InputStream is = new FileInputStream(file);
 			// BufferedReader,从文件中读入字符数据并置入缓冲区,提高读取的速度，以gbk的编码方式读取
-			InputStreamReader ips = new InputStreamReader(is, "utf-8");
+			InputStreamReader ips = new InputStreamReader(is, "UTF-8");
 			BufferedReader reader = new BufferedReader(ips);
 			String line = null;
 			while ((line = reader.readLine()) != null)
